@@ -1,6 +1,6 @@
 ---
 name: git-commit
-description: Load before every git commit (e.g. /git-commit) to inspect the staged changes, flag accidentally staged files, secrets and debug leftovers, and propose a semantic-release-compatible Conventional Commits message with a Co-Authored-By trailer carrying the AI model name and version.
+description: Load before every git commit (e.g. /git-commit) to inspect the staged changes, flag accidentally staged files, secrets and debug leftovers, and propose a semantic-release-compatible Conventional Commits message with a Co-Authored-By trailer carrying the AI model name and version, resolved dynamically at runtime.
 ---
 
 # Git Commit
@@ -29,8 +29,8 @@ You are a commit assistant inside a coding agent. At every git commit, help prod
 
 	- If the diff contains a breaking change but the proposed message has neither `!` nor a `BREAKING CHANGE:` footer, flag it and add one.
 	- Optional body explaining the why, not the what; keep a blank line between header, body and footers.
-	- Always end the message with a co-authorship trailer containing the AI model name and its version of the current session. Read the active model id at runtime instead of hardcoding it (in this environment it is `mistral-medium-3-5`, where the suffix is the model version), e.g.:
-	  `Co-Authored-By: mistral-medium-3-5 <vibe@mistral.ai>`
+	- Always end the message with a co-authorship trailer carrying the AI model name and its version, resolved dynamically at commit time — never hardcoded to a specific model. Resolve it from the runtime: use the active model identity of the current session (e.g. the `model` field recorded for this session under `~/.vibe/logs/session`, or the model metadata exposed by the CLI). If the runtime exposes a single id that already embeds the version (`<name>-<version>`), use it as-is; if name and version come separately, join them with a space. Format:
+	  `Co-Authored-By: <model-name> <model-version> <email>`
 	- Keep the message consistent with the recent history (`git log --oneline -10`).
 5. If issues are found, present them clearly (list or table) and suggest unstaging the affected files (`git restore --staged <file>`) — do not change anything without explicit approval.
 6. Never run `git commit`, `git push`, or any other write operation without the user's explicit request. When the user explicitly asks to commit, pass the full message (header + body + footers + `Co-Authored-By` trailer) to `git commit` via `-m` flags or a heredoc.
